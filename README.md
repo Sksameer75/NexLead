@@ -1,242 +1,556 @@
 # NexLead — Lead Intelligence & Sales Operations Platform
 
-NexLead is a professional Lead Intelligence and Sales Operations Platform built with a genuine three-tier architecture:
+NexLead is a web-based Lead Intelligence and Sales Operations Platform designed to help sales teams manage leads, evaluate lead quality, prioritize prospects, coordinate sales activities, and track opportunities through the sales pipeline.
 
-1. **Presentation Tier**: React 18 + Vite + TypeScript
-2. **Application Tier**: Python 3.13 + FastAPI + Pydantic v2 + SQLAlchemy 2.0
-3. **Data Tier**: MySQL 8.4 (`lead_intelligence`)
+It combines lead scoring, sales workflow management, territory-based assignment, duplicate detection, campaign operations, and performance insights in one application.
+
+The project is built using React, TypeScript, Python, FastAPI, SQLAlchemy, and MySQL.
 
 ---
 
-## Architecture Overview
+## Table of Contents
 
-```
-                      +-----------------------------+
-                      |      Presentation Tier      |
-                      |   React + Vite + TypeScript  |
-                      |         (Port 5173)         |
-                      +--------------+--------------+
-                                     |
-                                     | REST / JSON
-                                     v
-                      +-----------------------------+
-                      |      Application Tier       |
-                      |      FastAPI + SQLAlchemy   |
-                      |         (Port 8000)         |
-                      +--------------+--------------+
-                                     |
-                                     | TCP (Port 3306)
-                                     v
-                      +-----------------------------+
-                      |          Data Tier          |
-                      |      MySQL 8.4 Database     |
-                      |     (lead_intelligence)     |
-                      +-----------------------------+
+- [Project Overview](#project-overview)
+- [Key Features](#key-features)
+- [Technology Stack](#technology-stack)
+- [System Architecture](#system-architecture)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation and Setup](#installation-and-setup)
+- [Running the Application](#running-the-application)
+- [Demo Data](#demo-data)
+- [API Documentation](#api-documentation)
+- [Important API Endpoints](#important-api-endpoints)
+- [Testing and Verification](#testing-and-verification)
+- [Data and Documentation](#data-and-documentation)
+
+---
+
+## Project Overview
+
+Sales teams frequently deal with large numbers of leads, inconsistent lead quality, delayed follow-ups, duplicate records, and difficulty identifying which prospects deserve immediate attention.
+
+NexLead addresses these operational challenges through a centralized application that provides:
+
+- Centralized lead management.
+- Multi-dimensional lead scoring.
+- Lead prioritization and score history.
+- Territory-based lead routing.
+- Sales activity and task management.
+- Opportunity and pipeline tracking.
+- Lead consent management.
+- Duplicate lead detection.
+- Campaign-related operations.
+- Historical performance and operational insights.
+
+The application is designed around a practical sales workflow:
+
+**Capture → Evaluate → Prioritize → Assign → Engage → Convert**
+
+---
+
+## Key Features
+
+### 1. Lead Management
+
+- View and manage lead records from a centralized interface.
+- Access individual lead information.
+- Track lead ownership and territory.
+- Manage lead-related activities.
+- Maintain lead consent information.
+
+### 2. Intelligent Lead Scoring
+
+NexLead evaluates leads using multiple scoring dimensions:
+
+- **Fit Score:** Measures how well a lead matches the target customer profile.
+- **Intent Score:** Represents the lead's buying intent.
+- **Engagement Score:** Measures engagement with sales activities.
+- **Total Score:** Provides an overall lead prioritization score.
+
+The platform also supports historical score snapshots, allowing changes in lead quality to be examined over time.
+
+### 3. Territory-Based Lead Routing
+
+- Preview lead assignment decisions.
+- Evaluate territory-based routing.
+- Identify the appropriate sales representative.
+- Support structured lead distribution.
+
+### 4. Duplicate Detection
+
+Duplicate detection functionality helps identify potentially repeated lead records and improve lead data quality.
+
+### 5. Sales Task Management
+
+- View assigned sales tasks.
+- Track pending and completed tasks.
+- Update task completion status.
+- Coordinate follow-up activities.
+
+### 6. Opportunity Management
+
+- Associate opportunities with leads.
+- Track sales opportunities.
+- Manage opportunity pipeline stages.
+- Monitor sales progress.
+
+### 7. Campaign Operations
+
+The backend includes dedicated campaign-related functionality to support campaign operations and lead engagement workflows.
+
+### 8. Operational Insights
+
+The application provides dashboard-level visibility into lead and sales operations, helping users understand lead distribution, scoring, task progress, and opportunity activity.
+
+---
+
+## Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React 18, TypeScript, Vite |
+| Backend | Python, FastAPI |
+| Data Validation | Pydantic |
+| ORM / Database Access | SQLAlchemy |
+| Database | MySQL |
+| Database Driver | PyMySQL |
+| API Communication | REST API, HTTP, JSON |
+| Testing | Pytest |
+| Version Control | Git, GitHub |
+
+---
+
+## System Architecture
+
+NexLead follows a three-tier application architecture.
+
+```text
++--------------------------------------+
+|          PRESENTATION TIER           |
+|                                      |
+|       React + TypeScript + Vite      |
+|                                      |
+|              Port 5173               |
++------------------+-------------------+
+                   |
+                   | HTTP / JSON
+                   | REST API
+                   v
++--------------------------------------+
+|          APPLICATION TIER            |
+|                                      |
+|              FastAPI                 |
+|                                      |
+|    Lead Management and CRM Logic     |
+|    Scoring and Routing               |
+|    Tasks and Opportunities           |
+|    Campaign and Deduplication Logic  |
+|                                      |
+|              Port 8000               |
++------------------+-------------------+
+                   |
+                   | SQLAlchemy
+                   | PyMySQL
+                   v
++--------------------------------------+
+|              DATA TIER               |
+|                                      |
+|                MySQL                 |
+|                                      |
+|       Persistent Application Data   |
++--------------------------------------+
 ```
 
-- **Frontend $\leftrightarrow$ Backend**: All communication is strictly over HTTP/JSON via REST API endpoints mounted under `/api/v1`.
-- **Backend $\leftrightarrow$ Database**: The backend owns all business logic and connects to MySQL 8.4 through a dedicated SQLAlchemy repository layer with connection pooling.
-- **Modular Monolith**: Clean separation between API transport, business services, repositories, and data models. No microservices or extraneous distributed systems.
+### Presentation Tier
+
+The React frontend provides the user interface and communicates with the backend through REST API endpoints.
+
+### Application Tier
+
+FastAPI handles API requests, validation, database interactions, and CRM business operations.
+
+The backend functionality is organized across application modules, including:
+
+- `crm.py`
+- `crm_campaigns.py`
+- `crm_dedupe.py`
+- `crm_extensions.py`
+
+### Data Tier
+
+MySQL provides persistent relational data storage. SQLAlchemy is used for database interaction, with PyMySQL as the database driver.
+
+The application also includes dedicated health-check functionality for application and database diagnostics.
 
 ---
 
 ## Project Structure
 
-```
+```text
 NexLead/
-├── data/
-│   ├── generated/              # Generated synthetic data
-│   ├── ground_truth/           # Ground truth validation datasets
-│   └── exports/                # Exported reports and analytics
-├── docs/
-│   ├── architecture.md         # Three-tier system architecture specification
-│   └── requirements-traceability.md # Requirements traceability matrix
+│
 ├── backend/
 │   ├── app/
 │   │   ├── api/
 │   │   │   └── v1/
 │   │   │       ├── endpoints/
-│   │   │       │   └── health.py    # Health & DB diagnostic route handlers
-│   │   │       └── router.py        # Master v1 API router
+│   │   │       │   └── health.py
+│   │   │       └── router.py
+│   │   │
 │   │   ├── core/
-│   │   │   ├── config.py            # Pydantic BaseSettings environment config
-│   │   │   └── database.py          # SQLAlchemy engine, session pool, get_db
+│   │   │   ├── config.py
+│   │   │   └── database.py
+│   │   │
 │   │   ├── models/
-│   │   │   └── base.py              # SQLAlchemy Declarative Base
+│   │   │   └── base.py
+│   │   │
 │   │   ├── repositories/
-│   │   │   └── health_repository.py # Data access layer for DB diagnostics
+│   │   │   └── health_repository.py
+│   │   │
 │   │   ├── schemas/
-│   │   │   └── health.py            # Pydantic validation schemas
+│   │   │   └── health.py
+│   │   │
 │   │   ├── services/
-│   │   │   └── health_service.py    # Business logic layer
-│   │   └── main.py                  # FastAPI application entry point
+│   │   │   └── health_service.py
+│   │   │
+│   │   ├── crm.py
+│   │   ├── crm_campaigns.py
+│   │   ├── crm_dedupe.py
+│   │   └── crm_extensions.py
+│   │
+│   │   └── main.py
+│   │
 │   ├── tests/
-│   │   └── test_health.py           # Automated health & DB endpoint tests
-│   ├── .env.example                 # Backend environment variable template
-│   ├── .env                         # Local dev environment (gitignored)
-│   └── requirements.txt             # Minimal Python dependencies
+│   │   └── test_health.py
+│   │
+│   ├── .env.example
+│   └── requirements.txt
+│
 ├── frontend/
 │   ├── src/
 │   │   ├── api/
-│   │   │   ├── client.ts            # Fetch-based REST client
-│   │   │   └── healthApi.ts         # Health API callers
+│   │   │   ├── client.ts
+│   │   │   └── healthApi.ts
+│   │   │
 │   │   ├── components/
-│   │   │   └── HealthStatus.tsx     # Tier status display component
+│   │   │   └── HealthStatus.tsx
+│   │   │
 │   │   ├── types/
-│   │   │   └── health.ts            # TypeScript interfaces
-│   │   ├── App.tsx                  # Root layout & lifecycle
-│   │   ├── App.css                  # UI styling
-│   │   ├── index.css                # Base styling
-│   │   ├── main.tsx                 # React entry point
-│   │   └── vite-env.d.ts            # Vite client type definitions
-│   ├── .env.example                 # Frontend environment template
-│   ├── .env                         # Frontend local dev configuration
-│   ├── package.json                 # Minimal npm dependencies
-│   ├── tsconfig.json                # TypeScript compiler config
-│   └── vite.config.ts               # Vite configuration (port 5173)
-├── .env.example                     # Root environment template
-├── .gitignore                       # Git exclusion rules
-└── README.md                        # Setup and startup guide
+│   │   │   └── health.ts
+│   │   │
+│   │   ├── App.tsx
+│   │   ├── App.css
+│   │   ├── index.css
+│   │   └── main.tsx
+│   │
+│   ├── .env.example
+│   ├── package.json
+│   ├── package-lock.json
+│   └── vite.config.ts
+│
+├── data/
+│   ├── generated/
+│   ├── ground_truth/
+│   ├── exports/
+│   └── nexlead_export.csv
+│
+├── docs/
+│   ├── architecture.md
+│   └── requirements-traceability.md
+│
+├── .env.example
+├── .gitignore
+└── README.md
 ```
 
 ---
 
 ## Prerequisites
 
-- **Operating System**: Windows 10/11
-- **PowerShell**: Windows PowerShell 5.1+ or PowerShell 7+
-- **Python**: 3.11+ (tested on Python 3.13)
-- **Node.js**: v18+ (tested on Node v24.21.0, npm 11.19.0)
-- **MySQL**: MySQL 8.4 (or MySQL 8.0 Community Server running on port 3306)
+Install the following software before running the application:
+
+| Software | Recommended Version |
+|---|---|
+| Windows | Windows 10 / 11 |
+| Python | 3.11 or newer |
+| Node.js | 18 or newer |
+| npm | Compatible with installed Node.js |
+| MySQL | MySQL 8.0 or newer |
+| Git | Latest stable version |
+
+The project was developed and tested in a Windows environment using Python 3.13 and Node.js 24.
 
 ---
 
-## Setup & Startup Instructions (Windows PowerShell)
+## Installation and Setup
 
-Open Windows PowerShell.
-
-### 1. Database Setup
-
-Ensure the MySQL service is running and create the `lead_intelligence` database if it does not already exist:
+### 1. Clone the Repository
 
 ```powershell
-# Using MySQL Command Line Client (replace with your credentials)
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS lead_intelligence CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+git clone https://github.com/Sksameer75/NexLead.git
+cd NexLead
 ```
 
----
+### 2. Database Setup
 
-### 2. Backend Setup (Application Tier)
+Make sure your MySQL service is running.
 
-Navigate to the `backend` directory, create a virtual environment, and install dependencies:
+Create the application database:
+
+```sql
+CREATE DATABASE IF NOT EXISTS lead_intelligence
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+```
+
+You can execute this through MySQL Workbench or the MySQL command-line client.
+
+### 3. Backend Setup
+
+Open PowerShell from the project root:
 
 ```powershell
-cd c:\Users\Sameer\Desktop\NexLead\backend
+cd backend
+```
 
-# 1. Create Python virtual environment
+Create a Python virtual environment:
+
+```powershell
 python -m venv .venv
+```
 
-# 2. Activate virtual environment
+Activate the environment:
+
+```powershell
 .\.venv\Scripts\Activate.ps1
+```
 
-# 3. Install strictly required dependencies
-pip install -r requirements.txt
+Install backend dependencies:
 
-# 4. Configure environment variables
-# Copy .env.example to .env and adjust credentials if needed
+```powershell
+python -m pip install -r requirements.txt
+```
+
+Create the backend environment file:
+
+```powershell
 Copy-Item .env.example .env
 ```
 
-Ensure `backend/.env` contains your correct database credentials:
-```ini
-DATABASE_URL="mysql+pymysql://<user>:<password>@127.0.0.1:3306/lead_intelligence"
+Open `backend/.env` and configure the database connection.
+
+Example:
+
+```env
+DATABASE_URL=mysql+pymysql://YOUR_USER:YOUR_PASSWORD@127.0.0.1:3306/lead_intelligence
 ```
 
-#### Start Backend Server:
+Replace the example credentials with your actual MySQL credentials.
+
+Do not commit your actual `.env` file or database passwords.
+
+### 4. Start the Backend
+
+From the `backend` directory, with the virtual environment activated:
 
 ```powershell
-# From the backend directory with virtual environment activated:
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Backend will be accessible at:
-- **API Root**: `http://127.0.0.1:8000`
-- **Swagger Documentation**: `http://127.0.0.1:8000/api/v1/docs`
-- **Interactive OpenAPI Specification**: `http://127.0.0.1:8000/api/v1/openapi.json`
+Backend address:
 
----
+```text
+http://127.0.0.1:8000
+```
 
-### 3. Frontend Setup (Presentation Tier)
+### 5. Frontend Setup
 
-Open a **new** PowerShell terminal for the frontend:
+Open a second PowerShell terminal.
+
+Navigate to the frontend directory:
 
 ```powershell
-cd c:\Users\Sameer\Desktop\NexLead\frontend
+cd NexLead/frontend
+```
 
-# 1. Configure environment variables
+Create the frontend environment file:
+
+```powershell
 Copy-Item .env.example .env
-
-# 2. Install dependencies (using npm.cmd on Windows)
-cmd /c npm install
-
-# 3. Start Vite development server
-cmd /c npm run dev
 ```
 
-Frontend will be accessible at:
-- **Application URL**: `http://127.0.0.1:5173`
+Install frontend dependencies:
+
+```powershell
+npm.cmd install
+```
+
+Start the development server:
+
+```powershell
+npm.cmd run dev
+```
+
+Frontend address:
+
+```text
+http://127.0.0.1:5173
+```
 
 ---
 
-## Verification & Health Check Endpoints
+## Running the Application
 
-Both tiers can be verified independently via PowerShell or curl:
+Once both servers are running:
 
-### Application Health Check:
+| Component | URL |
+|---|---|
+| NexLead Frontend | http://127.0.0.1:5173 |
+| FastAPI Backend | http://127.0.0.1:8000 |
+| Swagger API Documentation | http://127.0.0.1:8000/api/v1/docs |
+| OpenAPI Specification | http://127.0.0.1:8000/api/v1/openapi.json |
+
+The frontend communicates with the backend through the configured API client.
+
+---
+
+## Demo Data
+
+NexLead includes a demonstration data workflow.
+
+After configuring the backend and database and starting the application, the demo-seeding endpoint can be used to populate demonstration records.
+
 ```powershell
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/health" | ConvertTo-Json
-```
-**Sample Response:**
-```json
-{
-  "status": "healthy",
-  "app": "NexLead API",
-  "version": "0.1.0",
-  "environment": "development",
-  "timestamp": "2026-11-14T09:42:11.410437Z"
-}
+Invoke-RestMethod `
+  -Method POST `
+  -Uri "http://127.0.0.1:8000/api/v1/demo/seed"
 ```
 
-### Database Connectivity Health Check:
+The repository also contains a synthetic lead dataset:
+
+```text
+data/nexlead_export.csv
+```
+
+This dataset contains demonstration lead records and scoring information.
+
+Use synthetic data for demonstrations and testing. Do not use real customer information in public repositories.
+
+---
+
+## API Documentation
+
+NexLead exposes REST API functionality under:
+
+```text
+/api/v1
+```
+
+The API supports operations related to lead management, scoring, routing, tasks, opportunities, and other CRM workflows.
+
+Interactive API documentation is available through FastAPI Swagger UI:
+
+```text
+http://127.0.0.1:8000/api/v1/docs
+```
+
+The Swagger interface can be used to inspect available operations, provide request parameters, submit API requests, and examine JSON responses.
+
+---
+
+## Important API Endpoints
+
+The following are key application endpoints.
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/v1/dashboard` | Retrieve dashboard information |
+| GET | `/api/v1/leads` | Retrieve leads |
+| GET | `/api/v1/leads/{lead_id}` | Retrieve an individual lead |
+| GET | `/api/v1/leads/{lead_id}/score` | Retrieve lead scoring information |
+| GET | `/api/v1/leads/{lead_id}/activities` | Retrieve lead activities |
+| POST | `/api/v1/leads/{lead_id}/consent` | Manage lead consent |
+| GET | `/api/v1/tasks` | Retrieve sales tasks |
+| POST | `/api/v1/tasks/{task_id}/complete` | Complete a task |
+| GET | `/api/v1/opportunities` | Retrieve opportunities |
+| GET | `/api/v1/leads/{lead_id}/opportunities` | Retrieve opportunities associated with a lead |
+| POST | `/api/v1/opportunities/{opportunity_id}/stage` | Update an opportunity stage |
+| POST | `/api/v1/demo/seed` | Seed demonstration data |
+
+For request parameters, supported HTTP methods, and complete response schemas, refer to the live Swagger documentation.
+
+---
+
+## Testing and Verification
+
+### 1. Application Health Check
+
 ```powershell
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/health/db" | ConvertTo-Json
-```
-**Sample Response:**
-```json
-{
-  "status": "connected",
-  "database": "mysql",
-  "version": "8.0.46",
-  "latency_ms": 1.24,
-  "database_name": "lead_intelligence",
-  "message": "Database connection established successfully"
-}
+Invoke-RestMethod `
+  -Uri "http://127.0.0.1:8000/api/v1/health" |
+  ConvertTo-Json -Depth 5
 ```
 
-### Full System Health Check:
+### 2. Database Connectivity Check
+
 ```powershell
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/health/detailed" | ConvertTo-Json
+Invoke-RestMethod `
+  -Uri "http://127.0.0.1:8000/api/v1/health/db" |
+  ConvertTo-Json -Depth 5
 ```
 
-### Run Automated Backend Test Suite:
+### 3. Detailed Health Check
+
 ```powershell
-cd c:\Users\Sameer\Desktop\NexLead
-.\backend\.venv\Scripts\pytest.exe backend\tests -v
+Invoke-RestMethod `
+  -Uri "http://127.0.0.1:8000/api/v1/health/detailed" |
+  ConvertTo-Json -Depth 5
 ```
 
-### Verify Frontend TypeScript Build:
+### 4. Backend Tests
+
+From the backend directory:
+
 ```powershell
-cd c:\Users\Sameer\Desktop\NexLead\frontend
-cmd /c npm run build
+python -m pytest tests -v
 ```
 
+### 5. Frontend Production Build
+
+From the frontend directory:
+
+```powershell
+npm.cmd run build
+```
+
+A successful build verifies that the frontend can be compiled for production.
+
+---
+
+## Data and Documentation
+
+Additional project resources are available in the repository.
+
+| Resource | Description |
+|---|---|
+| `data/nexlead_export.csv` | Synthetic lead demonstration dataset |
+| `docs/architecture.md` | Architecture documentation |
+| `docs/requirements-traceability.md` | Requirements traceability information |
+| `backend/tests/` | Backend automated tests |
+
+---
+
+## Repository
+
+**GitHub:** https://github.com/Sksameer75/NexLead
+
+---
+
+## Project Goal
+
+NexLead aims to make sales operations more structured, measurable, and efficient by combining lead intelligence with practical CRM workflows.
+
+It provides a centralized foundation for evaluating prospects, organizing sales activities, managing opportunities, and supporting data-driven sales decisions.
+
+**NexLead — Turn Lead Data Into Sales Intelligence.**
