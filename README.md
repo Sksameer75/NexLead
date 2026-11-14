@@ -30,7 +30,7 @@ The project is built using React, TypeScript, Python, FastAPI, SQLAlchemy, and M
 
 ## Dashboard Preview
 
-<img width="1920" height="1080" alt="Screenshot (86)" src="https://github.com/user-attachments/assets/83ad72f4-2ce9-4d0e-b134-4d6f63c51c50" />
+<img width="1920" height="977" alt="Screenshot (86)" src="https://github.com/user-attachments/assets/2bb531f5-6c7f-4d4e-b3f1-0ed082763040" />
 
 
 Sales teams frequently deal with large numbers of leads, inconsistent lead quality, delayed follow-ups, duplicate records, and difficulty identifying which prospects deserve immediate attention.
